@@ -193,5 +193,15 @@ dataframe['categoria_vendas'] = pd.cut(dataframe['vendas'],
 #Criando variavel categorica usando compressao de lista
 dataframe['categoria_acessos'] = ['maior_que_300' if x > 300 else 'menor_que_300' for x in dataframe['acessos']]
 
+#Criando o dataframe_2
+dataframe_2 = pd.DataFrame({'site': ['site1', 'site1', 'site2', 'site2', 'site3'],
+               'suporte': ['Carlos', 'Carlos', 'Maria', 'Maria', 'Ezequiel']})
 
+#Realizando o merge para juntar os dois data frames
+print(dataframe.merge(dataframe_2, on = 'site', how = 'left'))
 
+#Salvando o dataframe como csv
+dataframe.to_csv('dataframe.csv', sep = ';', decimal = ',', index = False)
+
+#Lendo dados no formato csv
+dataframe_lido = pd.read_csv('dataframe.csv', sep = ';', decimal = ',')
