@@ -130,3 +130,5 @@ dmypy.json
 
 # Meus arquivos deletados 
 .DS_Store
+venv/
+.idea/
