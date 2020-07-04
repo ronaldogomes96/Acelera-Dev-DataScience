@@ -30,3 +30,31 @@ print(df['valor_aluguel'].describe())
 
 #Plot dos dados com o pandas
 print(df['valor_aluguel'].plot(kind = 'hist', bins = 10))
+
+#Estatistica multivariada
+"""
+    Como cientista de dados precisamos fazer pergntas sobre nossa base de dados e gerar hipoteses a partir do resultado
+    Perguntas:
+        Qual a cidade com a media de aluguel mais cara?
+        Quantos banheiros existem nas casas do media de aluguel mais caro?
+        Os imoveis mais caros aceitam animais?
+        Os imoveis mais caros sao mobiliados?
+"""
+
+#Respondendo as perguntas
+
+#Qual a cidade com a media de aluguel mais cara?
+cidadeComAluguelMaisCaro = df.groupby('city')['valor_aluguel'].mean().reset_index()
+print(cidadeComAluguelMaisCaro)
+
+#Quantos banheiros existem nas casas do media de aluguel mais caro?
+df['aluguel_alto'] = [ 'Alto' if x > 5000 else 'Baixo' for x in df['valor_aluguel']]
+banheirosEmAlugueisAltos = df.groupby('aluguel_alto')['bathroom'].mean()
+print(banheirosEmAlugueisAltos)
+
+
+
+
+
+
+
