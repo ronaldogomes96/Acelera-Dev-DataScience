@@ -52,6 +52,20 @@ df['aluguel_alto'] = [ 'Alto' if x > 5000 else 'Baixo' for x in df['valor_alugue
 banheirosEmAlugueisAltos = df.groupby('aluguel_alto')['bathroom'].mean()
 print(banheirosEmAlugueisAltos)
 
+#Correlacao
+
+#Correlacao entre valor do aluguel e o banheiro
+
+correlacaoBanheiroAluguel = df[['valor_aluguel', 'bathroom']].corr()
+print(correlacaoBanheiroAluguel)
+
+#Criando uma lista com valor int64
+aux = pd.DataFrame({'colunas' : df.columns, 'tipos' : df.dtypes})
+listaInteiros = list(aux[aux['tipos'] == 'int64']['colunas'])
+for coluna in listaInteiros:
+    print(coluna)
+    print( df[['valor_aluguel', coluna]].corr())
+
 
 
 
