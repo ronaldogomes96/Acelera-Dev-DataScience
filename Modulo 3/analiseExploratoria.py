@@ -1,6 +1,5 @@
 
 import pandas as pd
-import matplotlib
 
 df = pd.read_csv('houses_to_rent_v2.csv')
 
@@ -65,10 +64,3 @@ listaInteiros = list(aux[aux['tipos'] == 'int64']['colunas'])
 for coluna in listaInteiros:
     print(coluna)
     print( df[['valor_aluguel', coluna]].corr())
-
-
-
-
-
-
-
