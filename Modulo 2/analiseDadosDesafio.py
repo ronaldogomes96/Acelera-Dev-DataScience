@@ -1,8 +1,6 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-
 
 black_friday = pd.read_csv("black_friday.csv")
 
@@ -47,14 +45,17 @@ def q7():
 
 def q8():
 
-    scaler = StandardScaler()
-    black_friday['Purchase'] = scaler.fit_transform(black_friday['Purchase'].values.reshape(-1,1))
-    mediaColunaPurchase = black_friday['Purchase'].mean()
-    return mediaColunaPurchase
+    media = black_friday['Purchase'].mean()
+    desvioPadrao = black_friday['Purchase'].std()
+
+    for i in range(black_friday.shape[0]):
+        black_friday['Purchase'][i] = ( black_friday['Purchase'][i] - media ) / desvioPadrao
+    return black_friday['Purchase'].mean()
 
 def q9():
 
-    return black_friday.shape[0]
+    valoresPadronizados = list(filter(lambda x: x in range(-1,1), black_friday['Purchase']))
+    return len(valoresPadronizados)
 
 def q10():
 
