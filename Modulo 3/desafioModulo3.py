@@ -12,7 +12,7 @@ dadosImportantes = { 'pontuacao_credito' : df['pontuacao_credito'] ,
 data = pd.DataFrame(dadosImportantes)
 
 #Lendo o arquivo json
-with open ('submissionTeste.json','r') as arquivo:
+with open ('submission.json','r') as arquivo:
     texto = arquivo.read()
     submissionJSON = json.loads(texto)
 submissionJSON['SC']['moda'] = 10
