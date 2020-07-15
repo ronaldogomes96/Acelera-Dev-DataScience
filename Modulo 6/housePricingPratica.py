@@ -2,6 +2,11 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from yellowbrick.features import Rank1D
+from yellowbrick.features import PCA
+from yellowbrick.target import FeatureCorrelation
+
+
 
 df = pd.read_csv('train.csv')
 
@@ -45,3 +50,27 @@ sns.heatmap(df[colunas_numericas].corr().round(2), annot= True)
 
 #Variaveis que sao relacionadas com a variavel principal
 correlacionadas = ['GarageArea', 'GarageCars', 'GrLivArea', 'OverallQual']
+
+#Removendo a coluna ID
+colunas_numericas.remove('Id')
+df = df[colunas_numericas]
+
+y_train = df['SalePrice']
+X_train = df.drop(columns = 'SalePrice')
+
+#Usando o yelowbrick para visualizacao de dados e suas correlacoes
+visualizer = Rank1D(algorithm='shapiro')
+visualizer.fit(X_train, y_train)
+visualizer.transform(X_train)
+visualizer.show()
+
+#Visualizando a correlacoes de features
+visualizer = PCA(scale=True, proj_features=True, projection=2)
+visualizer.fit_transform(X_train[correlacionadas], y_train)
+visualizer.show()
+features = list(X_train.columns)
+
+
+visualizer = FeatureCorrelation(labels=features)
+visualizer.fit(X_train, y_train)
+visualizer.show()
