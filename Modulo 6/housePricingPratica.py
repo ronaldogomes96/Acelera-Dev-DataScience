@@ -5,6 +5,12 @@ import numpy as np
 from yellowbrick.features import Rank1D
 from yellowbrick.features import PCA
 from yellowbrick.target import FeatureCorrelation
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.feature_selection import RFE
+from yellowbrick.model_selection import RFECV
+from sklearn.decomposition import PCA
+
 
 
 
@@ -65,12 +71,73 @@ visualizer.transform(X_train)
 visualizer.show()
 
 #Visualizando a correlacoes de features
-visualizer = PCA(scale=True, proj_features=True, projection=2)
-visualizer.fit_transform(X_train[correlacionadas], y_train)
-visualizer.show()
+#visualizer = PCA(scale=True, proj_features=True, projection=2)
+#visualizer.fit_transform(X_train[correlacionadas], y_train)
+#visualizer.show()
 features = list(X_train.columns)
 
 
 visualizer = FeatureCorrelation(labels=features)
 visualizer.fit(X_train, y_train)
 visualizer.show()
+
+#Aplicando o modelo machine learning
+reg= LinearRegression()
+reg.fit(X_train, y_train)
+colunas_treinamento = X_train.columns
+
+#Pegando a base de dados de teste
+X_test = pd.read_csv('test.csv')
+y_test = pd.read_csv('sample_submission.csv')
+y_test = y_test['SalePrice']
+
+#Tirando as colunas nulas da base de teste
+X_test= X_test[colunas_treinamento].fillna(df[colunas_treinamento].mean())
+
+#Fazendo a predicao
+y_pred = reg.predict(X_test)
+
+#Mostrando o erro
+erro_normal = mean_squared_error(y_pred=y_pred, y_true=y_test)
+
+# Aplicando o Feature Selection
+
+rfe = RFE(reg)
+rfe.fit(X_train, y_train)
+
+#Criando um dataframe com o feature selection
+pd.DataFrame({'coluna':X_train.columns,
+              'bool': rfe.get_support(),
+              'coeficientes': pd.Series(reg.coef_)})
+
+X_train_importante = rfe.transform(X_train)
+X_test_importante = rfe.transform(X_test)
+
+#Fazendo o modelo e predicao com os valores apos o feature selection
+reg.fit(X_train_importante, y_train)
+y_pred_imp = reg.predict(X_test_importante)
+erro_imp = mean_squared_error(y_pred=y_pred_imp, y_true=y_test)
+
+# Instantiate RFECV visualizer with a linear SVM classifier
+visualizer = RFECV(reg)
+
+visualizer.fit(X_train, y_train) # Fit the data to the visualizer
+visualizer.show() # Finalize and render the figure
+
+# Aplicando PCA
+
+pca = PCA(0.95)
+pca.fit(X_train)
+print(pca.explained_variance_ratio_)
+
+#Fazendo o modelo e predicao com os valores apos o PCA
+
+X_train_pca = pca.transform(X_train)
+X_test_pca = pca.transform(X_test)
+reg = LinearRegression()
+reg.fit(X_train_pca, y_train)
+
+y_pred_pca = reg.predict(X_test_pca)
+erro_pca = mean_squared_error(y_pred=y_pred_pca, y_true=y_test)
+
+print(pd.DataFrame({'erro' : [erro_normal, erro_imp, erro_pca]}).plot(kind = 'bar', log = True))
