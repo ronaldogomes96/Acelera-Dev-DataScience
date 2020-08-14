@@ -1,17 +1,8 @@
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix , accuracy_score
-from sklearn.preprocessing import (
-    OneHotEncoder,StandardScaler
-)
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
 
 treino = pd.read_csv("train.csv")
 teste = pd.read_csv("test.csv")
@@ -28,37 +19,7 @@ treino = treino.drop(colunasInexistentesTeste, axis=1)
 #Parametrizacao
 copia = treino['IN_TREINEIRO']
 treino = treino.drop('IN_TREINEIRO', axis=1)
-treino = treino.drop('NU_INSCRICAO', axis=1)
 treino["IN_TREINEIRO"] = copia
-
-#Graficos de correlacao
-"""
-#Analisando a correlacao entre as variaveis númericas
-plt.figure(figsize = (20,20))
-sns.heatmap(treino.corr().round(2), annot= True)
-plt.show()
-#Plotagem dos dados e suas correlacoes
-corr = treino.corr()
-fig = plt.figure()
-ax = fig.add_subplot(111)
-cax = ax.matshow(corr,cmap='coolwarm', vmin=-1, vmax=1)
-fig.colorbar(cax)
-ticks = np.arange(0,len(treino.columns),0.75)
-ax.set_yticks(ticks)
-ax.set_xticklabels(treino.columns)
-ax.set_yticklabels(treino.columns)
-plt.show()
-"""
-
-#Verificando a diferanca entre os valores da variavel target
-zero = 0
-um = 0
-for i in treino['IN_TREINEIRO']:
-    if i == 0:
-        zero += 1
-    else:
-        um += 1
-print( zero, um )
 
 #Tipos das colunas
 print(treino.info())
@@ -75,8 +36,15 @@ colunasNaoImportantes = ["SG_UF_RESIDENCIA", "CO_UF_RESIDENCIA", "TP_SEXO",
                          "Q002", "Q006", "Q024", "Q025", "Q026", "Q047"
                          ]
 treino = treino.drop(colunasNaoImportantes, axis = 1)
-treino = treino.dropna()
-print(treino.isna().sum())
+teste = teste.drop(colunasNaoImportantes, axis = 1)
+
+#Substituindo os valores faltantes por 0
+treino = treino.replace(np.NAN, 0)
+teste = teste.replace(np.NAN, 0)
+numeroInscricaoTeste = list(teste["NU_INSCRICAO"])
+treino = treino.drop('NU_INSCRICAO', axis=1)
+teste = teste.drop('NU_INSCRICAO', axis=1)
+
 
 #Divisao da base de dados
 base = treino
@@ -84,16 +52,19 @@ _, a = base.shape
 atributos = base.iloc[:, 0:a - 1].values
 classe = base.iloc[:, a - 1].values
 
+#Balanceando os dados
+smote = SMOTE(sampling_strategy="minority")
+x_treino, y_treino = smote.fit_resample(atributos, classe)
 
-#Dividindo em treino e teste
-X_train, X_test, y_train, y_test = train_test_split( atributos, classe, test_size=0.30, random_state=42)
+#Modelo ML Random Forrest com 500 estimadores
+svm = RandomForestClassifier(n_estimators=500)
+svm.fit(x_treino, y_treino)
 
-#Modelo ML SVM
-regressor = SVC(kernel = 'linear', random_state=1)
-regressor.fit(X_train, y_train)
-previsores = regressor.predict(X_test)
+#Predicao
+previsores = svm.predict(teste)
 
-#Resultados
-print(previsores)
-print(accuracy_score(y_test, previsores))
-print(confusion_matrix(y_test, previsores))
+#Criacao da tabela de Resultados
+resposta = pd.DataFrame()
+resposta['NU_INSCRICAO'] = numeroInscricaoTeste
+resposta['IN_TREINEIRO'] = previsores
+resposta.to_csv('answer.csv', index=False, header=True)
